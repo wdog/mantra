@@ -18,6 +18,7 @@ No external dependencies. Single static binary. Works anywhere git does.
 ## 📑 Index
 
 - [💡 How it works](#-how-it-works)
+  - [Typical usage](#typical-usage)
 - [📦 Requirements](#-requirements)
 - [🔨 Build](#-build)
 - [🚀 Installation](#-installation)
@@ -59,6 +60,45 @@ mantra push     →   git --git-dir=~/.mantra.git --work-tree=~ push
 ```
 
 Because it is plain git under the hood, you can always fall back to raw git commands using those flags and everything will work as expected.
+
+### Typical usage
+
+**First machine — start tracking your dotfiles:**
+
+```bash
+mantra init                              # create ~/.mantra.git
+git --git-dir=~/.mantra.git remote add origin git@github.com:you/dotfiles.git
+
+mantra add -f ~/.bashrc                  # start tracking a file
+mantra add -f ~/.config/nvim/init.lua
+mantra commit -m "initial dotfiles"
+mantra push
+```
+
+**Day to day — edit a file, save it:**
+
+```bash
+# edit ~/.bashrc as usual, then:
+mantra modified                          # stage all modified tracked files
+mantra commit -m "update bashrc aliases"
+mantra push
+```
+
+**Second machine — restore your dotfiles:**
+
+```bash
+git clone --bare git@github.com:you/dotfiles.git ~/.mantra.git
+mantra pull                              # apply files to ~
+```
+
+**Check what is tracked and what has changed:**
+
+```bash
+mantra ls                                # list all tracked files
+mantra status                            # what changed since last commit
+mantra diff                              # show the actual diff
+mantra log                               # commit history
+```
 
 ---
 
