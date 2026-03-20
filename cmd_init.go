@@ -58,6 +58,7 @@ func cmdHelp(cfg *Config, args []string) error {
 		{"reset", "Reset HEAD (interactive mode selector)"},
 		{"checkout <ref>", "Checkout branch or file"},
 		{"", ""},
+		{"timeline [file]", "Browse file history and view content at any commit"},
 		{"init", "Initialize bare mantra repo"},
 		{"completion [shell]", "Print shell completion script (fish/bash/zsh)"},
 		{"help", "Show this help"},

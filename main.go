@@ -32,6 +32,7 @@ var commands = map[string]handler{
 	"init":              cmdInit,
 	"help":              cmdHelp,
 	"completion":        cmdCompletion,
+	"timeline":          cmdTimeline,
 }
 
 func main() {

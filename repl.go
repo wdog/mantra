@@ -116,7 +116,7 @@ func replComplete(cfg *Config, input string) []string {
 	// Commands that take file-path arguments
 	// Order matters: more specific prefixes ("add -f ") must come before "add "
 	// "add -u" and "modified" are complete commands — no path completion needed
-	fileArgCmds := []string{"add -f ", "add ", "diff "}
+	fileArgCmds := []string{"add -f ", "add ", "diff ", "timeline "}
 	for _, cmd := range fileArgCmds {
 		if strings.HasPrefix(input, cmd) {
 			partial := input[len(cmd):]
@@ -149,7 +149,7 @@ func replComplete(cfg *Config, input string) []string {
 	topLevel := []string{
 		"add", "add -u", "checkout", "commit", "completion", "conflict", "diff", "files",
 		"help", "init", "log", "ls", "modified", "pull", "push",
-		"rebase", "reset", "stash", "status",
+		"rebase", "reset", "stash", "status", "timeline",
 		"exit", "quit",
 	}
 	var matches []string
