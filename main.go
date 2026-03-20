@@ -12,6 +12,8 @@ var commands = map[string]handler{
 	"status":            cmdStatus,
 	"diff":              cmdDiff,
 	"add":               cmdAdd,
+	"add -u":            cmdAddModified,
+	"modified":          cmdAddModified,
 	"commit":            cmdCommit,
 	"push":              cmdPush,
 	"pull":              cmdPull,
@@ -29,6 +31,7 @@ var commands = map[string]handler{
 	"files":             cmdLsFiles,
 	"init":              cmdInit,
 	"help":              cmdHelp,
+	"completion":        cmdCompletion,
 }
 
 func main() {
@@ -41,6 +44,12 @@ func main() {
 	args := os.Args[1:]
 	if len(args) == 0 {
 		runREPL(cfg)
+		os.Exit(0)
+	}
+
+	// --help / -h anywhere → show help
+	if args[0] == "--help" || args[0] == "-h" {
+		cmdHelp(cfg, nil)
 		os.Exit(0)
 	}
 

@@ -171,7 +171,41 @@ Exit with `q`, `exit`, `quit`, `ESC`, or `Ctrl-D`.
 | `log` | Show commit log (oneline graph) |
 | `ls` / `files` | List all tracked files |
 | `init` | Initialize the bare mantra repository |
-| `help` | Show help |
+| `completion [shell]` | Print shell completion script (`fish`, `bash`, `zsh`) |
+| `help` / `-h` / `--help` | Show help |
+
+---
+
+### 🐚 Shell Completion
+
+Auto-detects your shell from `$SHELL`, or pass it explicitly:
+
+```bash
+mantra completion         # auto-detect
+mantra completion fish
+mantra completion bash
+mantra completion zsh
+```
+
+**Fish**
+```fish
+mantra completion fish > ~/.config/fish/completions/mantra.fish
+```
+
+**Bash**
+```bash
+# one-off
+source <(mantra completion bash)
+# permanent
+mantra completion bash > /etc/bash_completion.d/mantra
+```
+
+**Zsh**
+```zsh
+mantra completion zsh > ~/.zsh/completions/_mantra
+# add to ~/.zshrc if not already present:
+# fpath=(~/.zsh/completions $fpath) && autoload -Uz compinit && compinit
+```
 
 ---
 

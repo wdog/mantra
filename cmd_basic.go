@@ -85,6 +85,14 @@ func cmdAdd(cfg *Config, args []string) error {
 	return nil
 }
 
+func cmdAddModified(cfg *Config, args []string) error {
+	if err := RunGit(cfg, "add", "-u"); err != nil {
+		return err
+	}
+	printSuccess("Staged all modified tracked files.")
+	return nil
+}
+
 func cmdPush(cfg *Config, args []string) error {
 	printInfo("Pushing...")
 	gitArgs := append([]string{"push"}, args...)

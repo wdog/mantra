@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"syscall"
@@ -110,18 +112,26 @@ func renderPrompt(s repoState) string {
 }
 
 // replComplete returns completions for the given input prefix.
-func replComplete(input string) []string {
-	topLevel := []string{
-		"add", "checkout", "commit", "conflict", "diff", "files",
-		"help", "init", "log", "ls", "pull", "push",
-		"rebase", "reset", "stash", "status",
-		"exit", "quit",
+func replComplete(cfg *Config, input string) []string {
+	// Commands that take file-path arguments
+	// Order matters: more specific prefixes ("add -f ") must come before "add "
+	// "add -u" and "modified" are complete commands — no path completion needed
+	fileArgCmds := []string{"add -f ", "add ", "diff "}
+	for _, cmd := range fileArgCmds {
+		if strings.HasPrefix(input, cmd) {
+			partial := input[len(cmd):]
+			var result []string
+			for _, p := range completeFilePath(cfg.WorkTree, partial) {
+				result = append(result, cmd+p)
+			}
+			return result
+		}
 	}
+
 	subCommands := map[string][]string{
 		"stash ":  {"list", "pop"},
 		"rebase ": {"--abort", "--continue"},
 	}
-
 	for prefix, subs := range subCommands {
 		if strings.HasPrefix(input, prefix) {
 			rest := input[len(prefix):]
@@ -135,12 +145,83 @@ func replComplete(input string) []string {
 		}
 	}
 
+	topLevel := []string{
+		"add", "add -u", "checkout", "commit", "conflict", "diff", "files",
+		"help", "init", "log", "ls", "modified", "pull", "push",
+		"rebase", "reset", "stash", "status",
+		"exit", "quit",
+	}
 	var matches []string
 	for _, cmd := range topLevel {
 		if strings.HasPrefix(cmd, input) {
 			matches = append(matches, cmd)
 		}
 	}
+	return matches
+}
+
+// completeFilePath returns file/dir completions under workTree for the given partial path.
+func completeFilePath(workTree, partial string) []string {
+	home, _ := os.UserHomeDir()
+
+	// Expand partial to absolute for filesystem ops; remember display format
+	abs := partial
+	useTilde := false
+	switch {
+	case strings.HasPrefix(partial, "~/"):
+		abs = filepath.Join(home, partial[2:])
+		useTilde = true
+	case partial == "~":
+		abs = home
+		useTilde = true
+	case partial == "":
+		abs = workTree
+		useTilde = workTree == home
+	case !filepath.IsAbs(partial):
+		abs = filepath.Join(workTree, partial)
+	}
+
+	var dir, base string
+	if partial == "" || partial == "~" || strings.HasSuffix(partial, "/") {
+		dir = abs
+		base = ""
+	} else {
+		dir = filepath.Dir(abs)
+		base = filepath.Base(abs)
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+
+	var matches []string
+	for _, e := range entries {
+		name := e.Name()
+		if strings.HasPrefix(name, ".") && !strings.HasPrefix(base, ".") {
+			continue
+		}
+		if base != "" && !strings.HasPrefix(name, base) {
+			continue
+		}
+		entryAbs := filepath.Join(dir, name)
+		var completion string
+		switch {
+		case useTilde:
+			rel, _ := filepath.Rel(home, entryAbs)
+			completion = "~/" + rel
+		case filepath.IsAbs(partial):
+			completion = entryAbs
+		default:
+			rel, _ := filepath.Rel(workTree, entryAbs)
+			completion = rel
+		}
+		if e.IsDir() {
+			completion += "/"
+		}
+		matches = append(matches, completion)
+	}
+	sort.Strings(matches)
 	return matches
 }
 
@@ -186,9 +267,9 @@ func setTermios(fd uintptr, t *termios) error {
 }
 
 // readLine reads a line from stdin in raw mode so ESC exits immediately.
-// Supports left/right cursor movement and tab completion.
+// Supports left/right cursor movement and tab completion via the complete func.
 // promptStr is reprinted after displaying completions. Returns (line, eof, escPressed).
-func readLine(promptStr string) (string, bool, bool) {
+func readLine(promptStr string, complete func(string) []string) (string, bool, bool) {
 	fd := os.Stdin.Fd()
 	orig, err := getTermios(fd)
 	if err != nil {
@@ -224,7 +305,7 @@ func readLine(promptStr string) (string, bool, bool) {
 				continue
 			}
 			cur := string(buf)
-			matches := replComplete(cur)
+			matches := complete(cur)
 			switch len(matches) {
 			case 0:
 				fmt.Fprint(os.Stdout, "\x07") // bell
@@ -341,7 +422,7 @@ func runREPL(cfg *Config) {
 		prompt := renderPrompt(state)
 		fmt.Fprint(os.Stderr, prompt)
 
-		line, eof, esc := readLine(prompt)
+		line, eof, esc := readLine(prompt, func(s string) []string { return replComplete(cfg, s) })
 		if eof || esc {
 			printInfo("Bye!")
 			break

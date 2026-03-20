@@ -41,6 +41,7 @@ func cmdHelp(cfg *Config, args []string) error {
 		{"status", "Show working tree status"},
 		{"diff [file]", "Show changes"},
 		{"add [files]", "Stage files (interactive if omitted)"},
+		{"add -u / modified", "Stage all modified tracked files"},
 		{"commit [-m msg]", "Commit staged changes"},
 		{"push", "Push to remote"},
 		{"pull", "Pull from remote"},
@@ -58,6 +59,7 @@ func cmdHelp(cfg *Config, args []string) error {
 		{"checkout <ref>", "Checkout branch or file"},
 		{"", ""},
 		{"init", "Initialize bare mantra repo"},
+		{"completion [shell]", "Print shell completion script (fish/bash/zsh)"},
 		{"help", "Show this help"},
 	}
 
