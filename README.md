@@ -9,7 +9,7 @@ No external dependencies. Single static binary. Works anywhere git does.
 
 [![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=flat)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS-6366f1?style=flat&logo=linux&logoColor=white)](https://github.com)
+[![Platform](https://img.shields.io/badge/Platform-Linux-6366f1?style=flat&logo=linux&logoColor=white)](https://github.com)
 
 </div>
 
@@ -17,16 +17,16 @@ No external dependencies. Single static binary. Works anywhere git does.
 
 ## 📑 Index
 
+- [💡 How it works](#-how-it-works)
 - [📦 Requirements](#-requirements)
 - [🔨 Build](#-build)
-  - [With Task](#with-task)
-  - [Manual cross-compilation](#manual-cross-compilation)
 - [🚀 Installation](#-installation)
 - [⚙️ Configuration](#️-configuration)
 - [🛠️ Initial Setup](#️-initial-setup)
   - [New repository](#new-repository)
   - [Existing repository](#existing-repository)
   - [Suppress untracked file noise](#suppress-untracked-file-noise)
+- [💾 Saving dotfiles](#-saving-dotfiles)
 - [💻 Usage](#-usage)
   - [✨ Interactive Mode (REPL)](#-interactive-mode-repl)
   - [📋 Basic Commands](#-basic-commands)
@@ -37,41 +37,56 @@ No external dependencies. Single static binary. Works anywhere git does.
 
 ---
 
+## 💡 How it works
+
+mantra uses a **bare git repository** — a repo with no working tree of its own. Instead, it points git's working tree directly at your home directory (`~`). This means:
+
+- Your `~` **is** the working tree. Every file in your home directory is a potential dotfile.
+- The git history lives in `~/.mantra.git` (or wherever `git-dir` points), completely separate from your files.
+- No symlinks, no copying, no separate dotfiles folder. Files stay exactly where they are.
+
+```
+~/.mantra.git/   ← bare repository (git objects, history, config)
+~/               ← working tree (your actual home directory)
+```
+
+Under the hood every `mantra` command translates to a plain `git` command with `--git-dir` and `--work-tree` flags injected automatically:
+
+```bash
+mantra status   →   git --git-dir=~/.mantra.git --work-tree=~ status
+mantra add      →   git --git-dir=~/.mantra.git --work-tree=~ add
+mantra push     →   git --git-dir=~/.mantra.git --work-tree=~ push
+```
+
+Because it is plain git under the hood, you can always fall back to raw git commands using those flags and everything will work as expected.
+
+---
+
 ## 📦 Requirements
 
-- **Go** 1.21+
+- **Go** 1.21+ *(only for building from source)*
 - **Git**
 
 ---
 
 ## 🔨 Build
 
+**From source:**
+
 ```bash
 go build -ldflags="-s -w" -o mantra .
 ```
 
-### With Task
+**Linux amd64 (pre-built binary):**
 
-Requires [Task](https://taskfile.dev).
+Download the latest `mantra-linux-amd64` from the [Releases](../../releases) page.
 
-```bash
-task build          # Linux amd64
-task build-cross    # all platforms
-task install        # build + copy to ~/.local/bin
-task clean          # remove built binaries
-```
-
-### Manual cross-compilation
+**With Task** — requires [Task](https://taskfile.dev):
 
 ```bash
-# macOS Apple Silicon
-GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o mantra-darwin-arm64 .
-
-# macOS Intel
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mantra-darwin-amd64 .
-
-# Linux amd64
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o mantra-linux-amd64 .
+task build      # build for current platform
+task install    # build + copy to ~/.local/bin
+task clean      # remove built binaries
 ```
 
 ---
@@ -80,6 +95,7 @@ GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o mantra-linux-amd64 .
 
 ```bash
 cp mantra ~/.local/bin/mantra
+chmod +x ~/.local/bin/mantra
 ```
 
 Make sure `~/.local/bin` is in your `$PATH`.
@@ -112,7 +128,7 @@ work-tree=~
 mantra init
 ```
 
-Then add a remote:
+Then add a remote so you can push your dotfiles to GitHub/GitLab/etc:
 
 ```bash
 git --git-dir=~/.mantra.git remote add origin <url>
@@ -120,26 +136,68 @@ git --git-dir=~/.mantra.git remote add origin <url>
 
 ### Existing repository
 
+Clone an existing dotfiles repo as a bare repository, then use normally:
+
 ```bash
 git clone --bare <url> ~/.mantra.git
 ```
 
-Create the config file and use normally.
-
 ### Suppress untracked file noise
 
-With `work-tree=$HOME`, git shows every file in your home directory as untracked. Recommended fix:
+With `work-tree=$HOME`, git sees every file in your home directory as untracked. The recommended fix is to ignore everything by default and only track files explicitly:
 
 ```gitignore
 # ~/.gitignore
 *
 ```
 
-Then explicitly track files you want:
+Then add only the files you want to track:
 
 ```bash
 mantra add -f ~/.bashrc
 mantra add -f ~/.config/nvim/init.lua
+```
+
+---
+
+## 💾 Saving dotfiles
+
+The typical workflow for tracking and syncing a dotfile:
+
+**1. Track a new file:**
+
+```bash
+mantra add -f ~/.bashrc
+mantra commit -m "track bashrc"
+mantra push
+```
+
+**2. Stage all modified tracked files at once:**
+
+```bash
+mantra modified        # or: mantra add -u
+mantra commit -m "update dotfiles"
+mantra push
+```
+
+**3. Pull changes on another machine:**
+
+```bash
+mantra pull
+```
+
+**4. See what has changed:**
+
+```bash
+mantra status          # overview
+mantra diff            # full diff
+mantra log             # commit history
+```
+
+**5. List all tracked dotfiles:**
+
+```bash
+mantra ls
 ```
 
 ---
