@@ -15,6 +15,28 @@ No external dependencies. Single static binary. Works anywhere git does.
 
 ---
 
+## 📑 Index
+
+- [📦 Requirements](#-requirements)
+- [🔨 Build](#-build)
+  - [With Task](#with-task)
+  - [Manual cross-compilation](#manual-cross-compilation)
+- [🚀 Installation](#-installation)
+- [⚙️ Configuration](#️-configuration)
+- [🛠️ Initial Setup](#️-initial-setup)
+  - [New repository](#new-repository)
+  - [Existing repository](#existing-repository)
+  - [Suppress untracked file noise](#suppress-untracked-file-noise)
+- [💻 Usage](#-usage)
+  - [✨ Interactive Mode (REPL)](#-interactive-mode-repl)
+  - [📋 Basic Commands](#-basic-commands)
+  - [🐚 Shell Completion](#-shell-completion)
+  - [🔀 Conflict & History Management](#-conflict--history-management)
+  - [⚡ Conflict Resolution Flow](#-conflict-resolution-flow)
+  - [🔄 Interactive Reset](#-interactive-reset)
+
+---
+
 ## 📦 Requirements
 
 - **Go** 1.21+
