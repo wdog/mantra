@@ -6,26 +6,10 @@ on:
       - "v*"
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            suffix: linux-amd64
-          - goos: linux
-            goarch: arm64
-            suffix: linux-arm64
-          - goos: darwin
-            goarch: amd64
-            suffix: darwin-amd64
-          - goos: darwin
-            goarch: arm64
-            suffix: darwin-arm64
-          - goos: windows
-            goarch: amd64
-            suffix: windows-amd64.exe
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v6
@@ -37,31 +21,10 @@ jobs:
           cache-dependency-path: go.mod
 
       - name: Build
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-        run: go build -ldflags="-s -w" -o mantra-${{ matrix.suffix }} .
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: mantra-${{ matrix.suffix }}
-          path: mantra-${{ matrix.suffix }}
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          merge-multiple: true
-          path: dist/
+        run: go build -ldflags="-s -w" -o mantra-linux-amd64 .
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: mantra-linux-amd64
           generate_release_notes: true
