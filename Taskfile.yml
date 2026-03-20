@@ -1,0 +1,40 @@
+version: "3"
+
+vars:
+  BINARY_NAME: mantra
+  BUILD_DIR: .
+  INSTALL_DIR: ~/.local/bin
+
+tasks:
+  # Build default (Linux amd64)
+  build:
+    desc: Build the binary for Linux amd64
+    cmds:
+      - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}} .
+
+  # Build cross-platform
+  build-cross:
+    desc: Build binaries for multiple platforms
+    deps: [build]
+    cmds:
+      - echo "Building for macOS Apple Silicon..."
+      - GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{add come icons and colors to readme{.BINARY_NAME}}-darwin-arm64 .
+      - echo "Building for macOS Intel..."
+      - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-darwin-amd64 .
+      - echo "Building for Linux amd64..."
+      - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-linux-amd64 .
+
+  # Install the binary
+  install:
+    desc: Install the binary to ~/.local/bin
+    deps: [build]
+    cmds:
+      - mkdir -p {{.INSTALL_DIR}}
+      - cp {{.BUILD_DIR}}/{{.BINARY_NAME}} {{.INSTALL_DIR}}/{{.BINARY_NAME}}
+      - echo "Installed to {{.INSTALL_DIR}}/{{.BINARY_NAME}}. Ensure {{.INSTALL_DIR}} is in your PATH."
+
+  # Clean build artifacts
+  clean:
+    desc: Remove built binaries
+    cmds:
+      - rm -f {{.BUILD_DIR}}/{{.BINARY_NAME}} {{.BUILD_DIR}}/{{.BINARY_NAME}}-*
