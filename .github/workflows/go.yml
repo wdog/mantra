@@ -1,8 +1,11 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# Continuous integration workflow for the mantra project.
+# Runs on every push and pull request targeting main to catch
+# build failures and code issues before they reach the main branch.
 
 name: Go
 
+# Trigger: run this workflow whenever code is pushed to main
+# or a pull request is opened/updated against main.
 on:
   push:
     branches: [ "main" ]
@@ -12,18 +15,36 @@ on:
 jobs:
 
   build:
+    # Use the latest Ubuntu runner provided by GitHub.
+    # Ubuntu is cheapest and sufficient since we target Linux.
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v6
+      # Step 1 — clone the repository into the runner workspace.
+      # v6 uses Node.js 24, avoiding deprecation warnings.
+      - uses: actions/checkout@v6
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version-file: go.mod
-        cache-dependency-path: go.mod
+      # Step 2 — install the Go toolchain.
+      # go-version-file reads the required version from go.mod so we
+      # never have to update this workflow when bumping Go.
+      # cache-dependency-path points to go.mod (not go.sum) because
+      # this project has no external dependencies and go.sum is absent.
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.mod
 
-    - name: Build
-      run: go build -v ./...
+      # Step 3 — compile all packages.
+      # -v prints each package name as it is compiled, making it easy
+      # to spot which package caused a failure in the logs.
+      # Fails the workflow if any file does not compile.
+      - name: Build
+        run: go build -v ./...
 
-    - name: Vet
-      run: go vet ./...
+      # Step 4 — run the Go static analyser.
+      # go vet catches common mistakes (wrong printf verbs, unreachable
+      # code, suspicious constructs) without executing the binary.
+      # Lightweight but catches real bugs before they ship.
+      - name: Vet
+        run: go vet ./...
