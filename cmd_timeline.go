@@ -23,20 +23,13 @@ func cmdTimeline(cfg *Config, args []string) error {
 		}
 		relPath = rel
 	} else {
-		// No file given — let the user pick from all tracked files.
-		// Use RunGitBareCapture (no --work-tree) so the listing is not
-		// restricted to the current working directory.
-		out, err := RunGitBareCapture(cfg, "ls-files")
+		var err error
+		relPath, err = BrowseTrackedFiles(cfg, "Select a file")
 		if err != nil {
 			return fmt.Errorf("cannot list tracked files: %w", err)
 		}
-		files := strings.Fields(strings.TrimSpace(out))
-		if len(files) == 0 {
-			printWarn("No tracked files yet.")
-			return nil
-		}
-		relPath = selectOption("Select a file", files)
 		if relPath == "" {
+			printWarn("No tracked files yet.")
 			return nil
 		}
 	}
