@@ -164,7 +164,15 @@ Opens an interactive shell with a live-updating prompt:
 mantra  main ↑1 +2 ~1 ›
 ```
 
-**Tab completion** is supported for all commands and subcommands.
+**Tab completion** is supported for all commands, subcommands, and file paths:
+
+- `add ~/.<TAB>` — completes file paths inside the work-tree
+- `add -f ~/.<TAB>` — same, for force-adding ignored files
+- `diff <TAB>` — completes file paths
+- `stash <TAB>` — completes `list` / `pop`
+- `rebase <TAB>` — completes `--abort` / `--continue`
+- `completion <TAB>` — completes `fish` / `bash` / `zsh`
+
 Exit with `q`, `exit`, `quit`, `ESC`, or `Ctrl-D`.
 
 #### Prompt indicators
@@ -187,6 +195,7 @@ Exit with `q`, `exit`, `quit`, `ESC`, or `Ctrl-D`.
 | `status` | Show working tree status |
 | `diff [file]` | Show changes |
 | `add [files]` | Stage files (interactive prompt if omitted) |
+| `add -u` / `modified` | Stage all modified tracked files |
 | `commit [-m msg]` | Commit staged changes (interactive prompt if `-m` omitted) |
 | `push` | Push to remote |
 | `pull` | Pull from remote |
