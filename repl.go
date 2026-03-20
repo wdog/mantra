@@ -129,8 +129,9 @@ func replComplete(cfg *Config, input string) []string {
 	}
 
 	subCommands := map[string][]string{
-		"stash ":  {"list", "pop"},
-		"rebase ": {"--abort", "--continue"},
+		"stash ":      {"list", "pop"},
+		"rebase ":     {"--abort", "--continue"},
+		"completion ": {"fish", "bash", "zsh"},
 	}
 	for prefix, subs := range subCommands {
 		if strings.HasPrefix(input, prefix) {
