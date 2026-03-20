@@ -147,7 +147,7 @@ func replComplete(cfg *Config, input string) []string {
 	}
 
 	topLevel := []string{
-		"add", "add -u", "checkout", "commit", "conflict", "diff", "files",
+		"add", "add -u", "checkout", "commit", "completion", "conflict", "diff", "files",
 		"help", "init", "log", "ls", "modified", "pull", "push",
 		"rebase", "reset", "stash", "status",
 		"exit", "quit",
