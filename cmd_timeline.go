@@ -23,8 +23,10 @@ func cmdTimeline(cfg *Config, args []string) error {
 		}
 		relPath = rel
 	} else {
-		// No file given — let the user pick from all tracked files
-		out, err := RunGitCapture(cfg, "ls-files")
+		// No file given — let the user pick from all tracked files.
+		// Use RunGitBareCapture (no --work-tree) so the listing is not
+		// restricted to the current working directory.
+		out, err := RunGitBareCapture(cfg, "ls-files")
 		if err != nil {
 			return fmt.Errorf("cannot list tracked files: %w", err)
 		}
