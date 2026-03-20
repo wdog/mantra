@@ -41,9 +41,12 @@ func cmdTimeline(cfg *Config, args []string) error {
 		}
 	}
 
-	// Fetch the commit history for this file
-	logOut, err := RunGitCapture(cfg,
-		"log", "--format=%h  %ad  %s", "--date=short", "--", relPath)
+	// Fetch the commit history for this file.
+	// Use the absolute path so git log resolves it from the work-tree root,
+	// not from the current working directory.
+	absPath := filepath.Join(cfg.WorkTree, relPath)
+	logOut, err := RunGitBareCapture(cfg,
+		"log", "--format=%h  %ad  %s", "--date=short", "--", absPath)
 	if err != nil || strings.TrimSpace(logOut) == "" {
 		printWarn("No history found for: " + relPath)
 		return nil
